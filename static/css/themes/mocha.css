@@ -1,0 +1,34 @@
+html[data-theme='mocha'] {
+	/* Base Colors */
+	--revilium-accent: #b4befe;
+	--revilium-base: #1e1e2e;
+	--revilium-secondary: #181825;
+	--revilium-terciary: black;
+	--revilium-surface0: #313244;
+	--revilium-surface1: #45475a;
+	--revilium-surface2: #585b70;
+	--revilium-overlay0: #6c7086;
+	--revilium-overlay1: #7f849c;
+	--revilium-overlay2: #9399b2;
+	--revilium-text: #cdd6f4;
+	--revilium-subtext0: #a6adc8;
+	--revilium-subtext1: #bac2de;
+	--revilium-danger: #f38ba8;
+	--revilium-warning: #fab387;
+	--revilium-success: #a6e3a1;
+
+	/* Statuses */
+	--revilium-status-offline: #313244;
+	--revilium-status-online: #cdd6f4;
+	--revilium-status-ingame: #b4befe;
+
+	/* Role Colors */
+	--revilium-role-banned: #282828;
+	--revilium-role-user: transparent;
+	--revilium-role-bc: #89b4fa;
+	--revilium-role-tbc: #f9e2af;
+	--revilium-role-obc: #fab387;
+	--revilium-role-catalog_manager: #74c7ec;
+	--revilium-role-administrator: transparent;
+	--revilium-role-developer: transparent;
+}

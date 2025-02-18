@@ -1,0 +1,41 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Nunito&display=swap');
+@import '../static/css/themes/dark.css';
+@import '../static/css/themes/latte.css';
+@import '../static/css/themes/mocha.css';
+@import '../static/css/themes/amoled.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+	@apply bg-base;
+	@apply text-text;
+	padding: 0;
+	margin: 0;
+	font-family: 'Nunito', sans-serif;
+}
+
+.blink {
+	-webkit-animation: 1s blink linear infinite;
+	-moz-animation: 1s blink linear infinite;
+	-ms-animation: 1s blink linear infinite;
+	-o-animation: 1s blink linear infinite;
+	animation: 1s blink ease-in-out infinite;
+}
+
+@keyframes blink {
+	from,
+	to {
+		@apply text-text;
+	}
+
+	50% {
+		color: transparent;
+	}
+
+	75% {
+		color: transparent;
+	}
+}

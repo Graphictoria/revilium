@@ -1,0 +1,12 @@
+-- CreateTable
+CREATE TABLE `Ad` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `type` ENUM('SKYSCRAPER', 'BANNER', 'SQUARE') NOT NULL,
+    `status` ENUM('PUBLIC', 'DENIED', 'DELETED') NOT NULL,
+    `userId` INTEGER NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `Ad` ADD CONSTRAINT `Ad_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

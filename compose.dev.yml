@@ -1,0 +1,35 @@
+services:
+  database:
+    image: mariadb:lts
+    restart: always
+    volumes:
+      - 'revilium_db:/var/lib/mysql'
+    ports:
+      - '3306:3306'
+    environment:
+      - 'MARIADB_DATABASE=revilium'
+      - 'MARIADB_ROOT_PASSWORD=development'
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      start_period: 10s
+      interval: 2s
+      timeout: 10s
+      retries: 10
+  meilisearch:
+    image: getmeili/meilisearch:v1.10
+    restart: always
+    volumes:
+      - 'revilium_meili:/meili_data'
+    ports:
+      - '7700:7700'
+    environment:
+      - 'MEILI_MASTER_KEY=ITW4O17pnfMxL1K6nFdB6maKJRq5wgFxHHPg42-Me_M'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://127.0.0.1:7700/health']
+      interval: 2s
+      timeout: 10s
+      retries: 10
+
+volumes:
+  revilium_db:
+  revilium_meili:

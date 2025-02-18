@@ -1,0 +1,67 @@
+services:
+  website:
+    build: .
+    image: registry.cirroskais.xyz/revilium:latest
+    restart: always
+    networks:
+      - frontend
+      - backend
+    env_file:
+      - .env
+    depends_on:
+      meilisearch:
+        condition: service_healthy
+      database:
+        condition: service_healthy
+    environment:
+      - 'DATABASE_URL=mysql://root:production@database:3306/revilium'
+      - 'MEILISEARCH_HOST=http://meilisearch:7700'
+      - 'MEILISEARCH_KEY=ITW4O17pnfMxL1K6nFdB6maKJRq5wgFxHHPg42-Me_M'
+  database:
+    image: mariadb:lts
+    restart: always
+    volumes:
+      - 'revilium_db:/var/lib/mysql'
+    networks:
+      - backend
+    environment:
+      - 'MARIADB_DATABASE=revilium'
+      - 'MARIADB_ROOT_PASSWORD=production'
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      start_period: 10s
+      interval: 2s
+      timeout: 10s
+      retries: 10
+  meilisearch:
+    image: getmeili/meilisearch:v1.10
+    restart: always
+    volumes:
+      - 'revilium_meili:/meili_data'
+    networks:
+      - backend
+    environment:
+      - 'MEILI_MASTER_KEY=ITW4O17pnfMxL1K6nFdB6maKJRq5wgFxHHPg42-Me_M'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://127.0.0.1:7700/health']
+      interval: 2s
+      timeout: 10s
+      retries: 10
+  backups:
+    image: registry.cirroskais.xyz/docker-db-backup:edge
+    restart: always
+    depends_on:
+      database:
+        condition: service_healthy
+    env_file:
+      - .env.backups
+    networks:
+      - backend
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  revilium_db:
+  revilium_meili:

@@ -1,0 +1,371 @@
+generator client {
+    provider      = "prisma-client-js"
+    binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id          Int      @id @default(autoincrement())
+    username    String   @unique
+    email       String   @unique
+    role        Role     @default(USER)
+    password    String
+    description String   @db.LongText
+    pronouns    String   @default("they/them")
+    joinDate    DateTime @default(now())
+    lastOnline  DateTime @default(now())
+    currency    Int      @default(100)
+    stipend     DateTime @default(now())
+    siteBadges  Int      @default(0)
+
+    discord Discord?
+
+    createdAssets Asset[]
+    inventory     OwnedAsset[]
+    createdAds    Ad[]
+
+    jwtVersion  Int     @default(0)
+    otpSecret   String? @unique
+    backupCodes Json?
+
+    avatar Avatar?
+    render Render?
+
+    createdGroups    Group[]
+    groupMemberships GroupMember[]
+
+    universes Universe[]
+
+    createdInvites Invite[] @relation("CreatedInvites")
+    invite         Invite?  @relation("UsedInvite")
+
+    friendsLeft  Friendship[] @relation("FriendsLeft")
+    friendsRight Friendship[] @relation("FriendsRight")
+
+    logsBy  Log[] @relation("logActor")
+    logsFor Log[] @relation("logTargetUser")
+}
+
+model Friendship {
+    id Int @id @default(autoincrement())
+
+    left    User @relation("FriendsLeft", fields: [leftId], references: [id])
+    leftId  Int
+    right   User @relation("FriendsRight", fields: [rightId], references: [id])
+    rightId Int
+
+    createdAt DateTime         @default(now())
+    status    FriendshipStatus
+
+    @@unique([rightId, leftId])
+}
+
+model Invite {
+    id      Int       @id @default(autoincrement())
+    value   String    @unique
+    created DateTime  @default(now())
+    used    DateTime?
+
+    createdBy   User? @relation("CreatedInvites", fields: [createdById], references: [id])
+    createdById Int?
+
+    usedBy   User? @relation("UsedInvite", fields: [usedById], references: [id])
+    usedById Int?  @unique
+}
+
+model Asset {
+    id          Int     @id @default(autoincrement())
+    name        String
+    description String  @db.LongText
+    price       Int     @default(0)
+    offsale     Boolean @default(true)
+    sales       Int     @default(0)
+    limited     Boolean @default(false)
+    remaining   Int?
+
+    universe   Universe? @relation(fields: [universeId], references: [id])
+    universeId Int?
+
+    render Render?
+
+    created DateTime @default(now())
+    updated DateTime @default(now())
+
+    creator   User? @relation(fields: [creatorId], references: [id])
+    creatorId Int?
+
+    group   Group? @relation(fields: [groupId], references: [id])
+    groupId Int?
+
+    ownedBy    OwnedAsset[]
+    equippedBy EquippedAsset[]
+
+    type   AssetType
+    status AssetStatus
+
+    logsFor Log[] @relation("logTargetAsset")
+}
+
+model OwnedAsset {
+    id     Int @id @default(autoincrement())
+    serial Int
+
+    asset   Asset @relation(fields: [assetId], references: [id])
+    assetId Int
+
+    owner   User @relation(fields: [ownerId], references: [id])
+    ownerId Int
+}
+
+model Render {
+    id     String       @id
+    status RenderStatus
+    type   RenderType   @default(PRIMARY)
+
+    asset   Asset? @relation(fields: [assetId], references: [id])
+    assetId Int?   @unique
+
+    user   User? @relation(fields: [userId], references: [id])
+    userId Int?  @unique
+
+    universe   Universe? @relation(fields: [universeId], references: [id])
+    universeId Int?      @unique
+
+    group   Group? @relation(fields: [groupId], references: [id])
+    groupId Int?   @unique
+}
+
+model Log {
+    id      Int     @id @default(autoincrement())
+    type    LogType
+    message String?
+
+    actor   User? @relation("logActor", fields: [actorId], references: [id])
+    actorId Int?
+
+    targetUser   User? @relation("logTargetUser", fields: [targetUserId], references: [id])
+    targetUserId Int?
+
+    targetAsset   Asset? @relation("logTargetAsset", fields: [targetAssetId], references: [id])
+    targetAssetId Int?
+}
+
+model Ad {
+    id     Int      @id @default(autoincrement())
+    type   AdType
+    status AdStatus
+
+    creator   User @relation(fields: [creatorId], references: [id])
+    creatorId Int
+}
+
+model Group {
+    id          Int     @id @default(autoincrement())
+    name        String
+    description String? @db.LongText
+
+    members       GroupMember[]
+    createdAssets Asset[]
+    roles         GroupRole[]
+    shouts        Shout[]
+    icon          Render?
+    universes     Universe[]
+
+    owner   User @relation(fields: [ownerId], references: [id])
+    ownerId Int
+}
+
+model Shout {
+    id      Int      @id @default(autoincrement())
+    content String
+    created DateTime @default(now())
+
+    member        GroupMember @relation(fields: [groupMemberId], references: [id])
+    groupMemberId Int
+
+    group   Group @relation(fields: [groupId], references: [id])
+    groupId Int
+}
+
+model GroupMember {
+    id     Int     @id @default(autoincrement())
+    shouts Shout[]
+
+    user   User @relation(fields: [userId], references: [id])
+    userId Int
+
+    group   Group @relation(fields: [groupId], references: [id])
+    groupId Int
+
+    role        GroupRole @relation(fields: [groupRoleId], references: [id])
+    groupRoleId Int
+}
+
+model GroupRole {
+    id          Int    @id @default(autoincrement())
+    name        String
+    description String
+    power       Int
+
+    group   Group @relation(fields: [groupId], references: [id])
+    groupId Int
+
+    members GroupMember[]
+}
+
+model EquippedAsset {
+    id Int @id @default(autoincrement())
+
+    avatar   Avatar @relation(fields: [avatarId], references: [id])
+    avatarId Int
+
+    asset   Asset @relation(fields: [assetId], references: [id])
+    assetId Int
+}
+
+model Avatar {
+    id            Int             @id @default(autoincrement())
+    user          User            @relation(fields: [userId], references: [id])
+    userId        Int             @unique
+    headColor     Int             @default(1)
+    torsoColor    Int             @default(1)
+    leftArmColor  Int             @default(1)
+    rightArmColor Int             @default(1)
+    leftLegColor  Int             @default(1)
+    rightLegColor Int             @default(1)
+    assets        EquippedAsset[]
+}
+
+model Universe {
+    id         Int                @id @default(autoincrement())
+    name       String
+    desciption String
+    created    DateTime           @default(now())
+    updated    DateTime           @default(now())
+    visibility UniverseVisibility
+    places     Asset[]
+    thumbnail  Render?
+
+    user   User? @relation(fields: [userId], references: [id])
+    userId Int?
+
+    group   Group? @relation(fields: [groupId], references: [id])
+    groupId Int?
+}
+
+model Discord {
+    id           String   @id
+    accessToken  String
+    refreshToken String
+    expiresAt    DateTime
+    scope        String
+
+    user   User @relation(fields: [userId], references: [id])
+    userId Int  @unique
+}
+
+enum Role {
+    BANNED
+    USER
+    BC
+    TBC
+    OBC
+    CATALOG_MANAGER
+    ADMINISTRATOR
+    DEVELOPER
+    SYSTEM
+}
+
+enum AssetType {
+    IMAGE
+    TSHIRT
+    AUDIO
+    MESH
+    LUA
+    HAT
+    PLACE
+    MODEL
+    SHIRT
+    PANTS
+    DECAL
+    HEAD
+    FACE
+    GEAR
+    BADGE
+    ANIMATION
+    TORSO
+    RIGHTARM
+    LEFTARM
+    LEFTLEG
+    RIGHTLEG
+    PACKAGE
+    GAMEPASS
+    PLUGIN
+    MESHPART
+}
+
+enum AssetStatus {
+    DELETED
+    REVIEW
+    PRIVATE
+    PUBLIC
+}
+
+enum RenderStatus {
+    DELETED
+    REVIEW
+    PUBLIC
+    PENDING
+}
+
+enum FriendshipStatus {
+    PENDING
+    FRIENDS
+    FOLLOWING
+    BLOCKED
+}
+
+enum LogType {
+    GRANT_STIPEND
+    PURCHASE_ASSET
+    UPDATE_ASSET
+    JOIN_PLACE
+    SOLD_ASSET
+    UPLOAD_ASSET
+    USER_BAN
+    USER_WARNING
+    GRANT_CURRENCY
+    SITE_ALERT
+    USER_PASSWORD_CHANGE
+    USER_PASSWORD_RESET
+    ADMIN_PASSWORD_RESET
+    USER_EMAIL_CHANGE
+    ADMIN_EMAIL_CHANGE
+}
+
+enum AdType {
+    SKYSCRAPER
+    BANNER
+    SQUARE
+}
+
+enum AdStatus {
+    PUBLIC
+    REVIEW
+    DELETED
+}
+
+enum RenderType {
+    PRIMARY
+    SECONDARY
+}
+
+enum UniverseVisibility {
+    PUBLIC
+    FRIENDS_ONLY
+    PRIVATE
+}

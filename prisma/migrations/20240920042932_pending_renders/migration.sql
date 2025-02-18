@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Render` MODIFY `status` ENUM('DELETED', 'REVIEW', 'PUBLIC', 'PENDING') NOT NULL;
